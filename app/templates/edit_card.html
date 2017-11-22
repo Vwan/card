@@ -5,15 +5,19 @@
 
 
 {% block page_content %}
-<div class="page-header">
-    <h2>编辑卡片</h2>
-</div>
-<div>
-{{ wtf.quick_form(form) }}
-</div>
+    {#{{ wtf.quick_form(form) }}#}
+    <form class="form form-horizontal" method="post" role="form">
+        <div class="form-inline">
+            <h2 class="col-sm-2">编辑卡片</h2>
+
+            <h4 class="col-sm-10">  {{ wtf.form_field(form.submit) }}</h4>
+        </div>
+        {{ form.hidden_tag() }}
+        {{ wtf.form_errors(form, hiddens="only") }}
+        {{ wtf.form_field(form.title) }}
+        {{ wtf.form_field(form.body, rows=20, cols=100) }}
+        {{ super() }}
+        {{ pagedown.include_pagedown() }}
+    </form>
 {% endblock %}
 
-{% block scripts %}
-{{ super() }}
-{{ pagedown.include_pagedown() }}
-{% endblock %}
