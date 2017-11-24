@@ -4,7 +4,7 @@ filter source data db and populate card table
 import pandas as pd
 import pandas.io.sql as pd_sql
 import sqlite3 as sql
-
+from datetime import datetime
 
 def dict_factory(cursor, row):
     d = {}
@@ -15,25 +15,47 @@ def dict_factory(cursor, row):
 
 def filter_by(cur, table, condition):
     # script = "SELECT * FROM shl WHERE " + field + " " + operator + " \"" + value + "\""
-    script = "SELECT * FROM " + table + " WHERE " + condition
+    script = "SELECT * FROM " + table + " WHERE " + condition + " order by id"
     return cur.execute(script).fetchall()
 
 
 # filter data from source table
-def search_card_from_src_db(db_name, condition, filter_str):
+def search_card_from_src_db(table_name, condition, filter_str):
+
+    db_name = "./app.db"
     conn = sql.connect(db_name)
     conn.row_factory = dict_factory
     cur = conn.cursor()
-    data1 = filter_by(cur,"shl", condition)  # "%" + filter_str + "%")
-    data2 = filter_by(cur,"jgyl", condition)  # "%" + filter_str + "%")
-    # insert into cards table in cards db
-    body = ""
-    for d in data1 + data2:
-        body += str('<b>' + str(d.get("id")) + "</b> " + d.get("content") + "<br><br>")
-        print("body is: ", body)
+    data = filter_by(cur, table_name, condition)  # "%" + filter_str + "%")
 
-    body_html = body
-    script = "insert into cards (title, body, body_html) values(?,?, ?)"
-    cur.execute(script, (filter_str, body, body_html))
-    conn.commit()
+    # insert into cards table in cards db
+    cards = []
+    body = ""
+    count = 1
+    for d in data:
+        if table_name == "医学衷中参西录":
+            body = str('<pre style="white-space:pre-wrap"><b>' + d.get("details") + "<br><br></pre>")
+            cards.append((filter_str + " " + str(count) + "   - " + table_name, body, body, datetime.utcnow()))
+            count += 1
+            body = ""
+        else:
+            body += str('<pre style="white-space:pre-wrap"><b>' + str(d.get("id")) + "</b> " + d.get("details") + "<br><br></pre>")
+    if body != "":
+        cards.append((filter_str + "   - " + table_name, body, body, datetime.utcnow()))
+    for card in cards:
+        try:
+            script = "select count(*) from cards where title='%s'" % card[0]
+            # print(script)
+            count = cur.execute(script).fetchall()
+            if count[0]['count(*)'] == 0:
+                script = "insert into cards (title, body, body_html, last_modified_on) values(?,?, ?,?)"
+
+                cur.execute(script, card)
+            else:
+                script = "update cards set body='%s', body_html='%s' last_modified_on='%s' where title='%s'" % (card[1], card[2], datetime.utcnow(), card[0])
+                cur.execute(script)
+        except Exception as e:
+            print(e)
+        finally:
+            conn.commit()
     conn.close()

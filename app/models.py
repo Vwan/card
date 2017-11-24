@@ -74,7 +74,7 @@ class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(60))
     body = db.Column(db.String(350))
-    timestamp = db.Column(db.DateTime)#, index=True)
+    last_modified_on = db.Column(db.DateTime, index=True)
     # 创建时得到Markdown的HTML代码缓存到数据库这个列中。
     body_html = db.Column(db.Text)
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -82,7 +82,7 @@ class Card(db.Model):
     def __init__(self, title, body):
         self.title = title
         self.body = body
-        self.timestamp = datetime.utcnow()
+        self.last_modified_on = datetime.utcnow()
         # 创建时得到Markdown的HTML代码缓存到数据库这个列中。
         self.body_html = markdown(self.body, output_format='html')
         # self.body_html = body

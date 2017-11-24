@@ -8,44 +8,89 @@
     <h2>远距联想，创造新作品</h2>
 
     <form>
-
-      <input type="submit" name="shuffle" value = "乱序拼接" class="btn btn-primary btn-lg margin-top:2rem" ></input>
-      <input type="submit" name="pic" value = "显示图片" class="btn btn-primary btn-lg margin-top:2rem" ></input>
+        <!-- Search -->
+        <input id="search-card" type="text" class="form-control" value={{search_card_str}}>
+        <input type="submit" id="btn-search-card" value="Search Card" class="btn btn-primary btn-lg margin-top:2rem"></input>
+        <input type="submit" name="shuffle" value="乱序拼接" class="btn btn-primary btn-lg margin-top:2rem"></input>
+        <input type="submit" name="pic" value="显示图片" class="btn btn-primary btn-lg margin-top:2rem"></input>
     </form>
 
 </div>
 <div class="container-fluid" style="margin-top:5rem;">
-
-    <div class="card-columns">
-
-
-        <!-- Card 4 -->
-        {% if pic_flag %}
-        {% for card in cards %}
-        <div class="card ">
-            <div class="card-header  text-center"><h3>{{card.title}}</h3></div>
-            <div class="card-body">
-                <p class="card-text">{{ card.body_html | markdown }}</p>
-            </div>
-            <div class="card-footer"><small class="text-muted">{{ moment(card.timestamp).fromNow()}}</small></div>
+    <div class="row-fluid">
+        <div class=pagination>
+            Page
+            <pre>      </pre>
+            {%- for page in paginated.iter_pages() %}
+            {% if page %}
+            {% if page != paginated.page %}
+            {% if title %}
+            <a href="{{ url_for('show_all_filtered', title=title, page=page) }}">{{ page }}
+                <pre>      </pre>
+            </a>
+            {% else %}
+            <a href="{{ url_for('show_all', page=page) }}">{{ page }}
+                <pre>      </pre>
+            </a>
+            {% endif %}
+            {% else %}
+            <strong>{{ page }}
+                <pre>      </pre>
+            </strong>
+            {% endif %}
+            {% else %}
+            <span class=ellipsis>…</span>
+            {% endif %}
+            {%- endfor %}
         </div>
-        {% endfor %}
-        {% else %}
+        <hr>
+        <div class="card-columns">
 
-        <!-- 卡片可增加图片> -->
-        {% for card in cards %}
-        <div class="card">
-          <img class="card-img-top img-fluid" src="/static/desert-sky-1537792.jpg" alt="Card image cap">
-          <div class="card-body">
-            <h4 class="card-title">{{card.title}}</h4>
-         <p class="card-text">{{ card.body_html | markdown }}</p>
-         <p class="card-text"><small class="text-muted">{{ moment(card.timestamp).fromNow()}}</small></p>
-       </div>
-     </div>
-      {% endfor %}
-      {% endif %}
+            {% for card in paginated.items %}
+            <div class="card">
 
+                <div class="card-body card-body-show-all">
 
+                    {% if not pic_flag %}
+                    <img class="card-img-top img-fluid" src="/static/desert-sky-1537792.jpg" alt="Card image cap">
+                    {% endif %}
+                    <h4 class="card-img-overlay text-center  card-title">{{card.title}}</h4>
+                    <div class="card-text card-text-show-all" contenteditable>{{ card.body_html | markdown }}</div>
+                    <p class="card-footer">
+                        <small class="text-muted">{{ moment(card.last_modified_on).fromNow()}}</small>
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+            <hr>
+            <!-- This is from the Flask-SqlAlchemy documentation -->
+        </div>
+
+        <div class=pagination>
+            Page
+            <pre>      </pre>
+            {%- for page in paginated.iter_pages() %}
+            {% if page %}
+            {% if page != paginated.page %}
+            {% if title %}
+            <a href="{{ url_for('show_all_filtered', title=title, page=page) }}">{{ page }}
+                <pre>      </pre>
+            </a>
+            {% else %}
+            <a href="{{ url_for('show_all', page=page) }}">{{ page }}
+                <pre>      </pre>
+            </a>
+            {% endif %}
+            {% else %}
+            <strong>{{ page }}
+                <pre>      </pre>
+            </strong>
+            {% endif %}
+            {% else %}
+            <span class=ellipsis>…</span>
+            {% endif %}
+            {%- endfor %}
+        </div>
     </div>
 </div>
 {% endblock %}

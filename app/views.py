@@ -2,7 +2,7 @@
 from flask import render_template, flash, redirect, session, url_for, request, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 
-from card.app.utils import search_card_from_src_db
+from app.utils import search_card_from_src_db
 from .forms import NameForm, RegistrationForm, CardForm
 from app import app, db, loginmanager, markdown, pagedown, moment
 from .models import User, Role, Card
@@ -14,16 +14,20 @@ from markdown import markdown
 # 回调函数，如果能找到用户，这个函数必须返回用户对象，否则返回None
 from . import loginmanager
 
+tables = [
+    "医学衷中参西录",
+    '伤寒论',
+    '金贵要略',
+    # '中兽医'
+]
+
+
+# app.config['tables']
 
 @loginmanager.user_loader
 def load_user(id):
     return User.query.get(int(id))
 
-# @app.route('/')
-# @app.route('/index')
-# @login_required
-# def index():
-#     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -113,13 +117,15 @@ def edit(id):
 
 @app.route("/search", methods=['POST'])
 def search():
-    db_name = "app.db"
     data = request.json['search-str']
-    condition = "content LIKE '%" + data + "%'"
+    condition = "details LIKE '%" + data + "%'"
     print("condition is: " + condition)
-    search_card_from_src_db(db_name, condition, data)
-    cards = Card.query.filter_by(title=data).all()
+    for table_name in tables:
+        search_card_from_src_db(table_name, condition, data)
+    cards = Card.query.filter(Card.title.contains(data)).all()
     return redirect(url_for('show_all'))
+    #return render_template('show_all.html', cards=cards)
+
 
 # 新功能测试页面
 @app.route('/test', methods=['GET', 'POST'])
@@ -133,21 +139,19 @@ def test_card():
     return render_template('test_card.html', cards=cards)
 
 
-@app.route('/show_all', methods=['GET', 'POST'])
-@login_required
-def show_all():
+@app.route('/show_all/page', defaults={'page': 1}, methods=['GET', 'POST'])
+@app.route("/show_all/page/<int:page>/", methods=["GET", "POST"])
+# @login_required
+def show_all(page):
     # 不知道为何需要用到request.args
-    print(request.args.get("shuffle"))
-    print(request)
-    print(request.args)
-    pic_flag = 1
+    pic_flag = 0
     user = current_user._get_current_object()
-    print(user.username)
-    cards = Card.query.all()
+    cards = Card.query.order_by(Card.last_modified_on.desc())#.all()
+    paginated = cards.paginate(page, 10)
     # cards = Card.query.filter((Card.author_id == user) | (Card.author_id == "")).all()
-    if not cards:
-        cards = Card.query.filter_by().order_by(Card.timestamp.desc()).all()
-        print("++++", cards)
+    # if cards:
+    #     cards = Card.query.filter_by().order_by(Card.last_modified_on.desc()).all()
+    #     print("++++", cards)
 
     if request.args.get("pic") == "显示图片":
         pic_flag = 0
@@ -157,4 +161,14 @@ def show_all():
         #         cards = Card.query.order_by(func.random()).all()
         cards = Card.query.filter_by(author=user).order_by(func.random()).limit(6)
 
-    return render_template('show_all.html', cards=cards, pic_flag=pic_flag)
+    return render_template('show_all.html', cards=cards, paginated=paginated, pic_flag=pic_flag)
+
+@app.route('/show_all/<title>/page', defaults={'page': 1}, methods=['GET', 'POST'])
+@app.route("/show_all/<title>/page/<int:page>/", methods=["GET", "POST"])
+# @login_required
+def show_all_filtered(title, page):
+    pic_flag = 0
+    user = current_user._get_current_object()
+    cards = Card.query.filter(Card.title.contains(title)).order_by(Card.last_modified_on.desc())#.all()
+    paginated = cards.paginate(page, 10)
+    return render_template('show_all.html', title=title, cards=cards, paginated=paginated, pic_flag=pic_flag, search_card_str=title)

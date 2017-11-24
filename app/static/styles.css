@@ -31,3 +31,6 @@ div.post-content {
     margin-left: 48px;
     min-height: 48px;
 }
+/* Browser specific (not valid) styles to make preformatted text wrap */
+
+.highlight { background-color: yellow }
