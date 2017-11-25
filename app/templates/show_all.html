@@ -54,7 +54,7 @@
                     {% if not pic_flag %}
                     <img class="card-img-top img-fluid" src="/static/desert-sky-1537792.jpg" alt="Card image cap">
                     {% endif %}
-                    <h4 class="card-img-overlay text-center  card-title">{{card.title}}</h4>
+                    <h4 class="text-center  card-title">{{card.title}}</h4>
                     <div class="card-text card-text-show-all" contenteditable>{{ card.body_html | markdown }}</div>
                     <p class="card-footer">
                         <small class="text-muted">{{ moment(card.last_modified_on).fromNow()}}</small>

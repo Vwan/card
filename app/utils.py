@@ -6,6 +6,7 @@ import pandas.io.sql as pd_sql
 import sqlite3 as sql
 from datetime import datetime
 
+
 def dict_factory(cursor, row):
     d = {}
     for idx, col in enumerate(cursor.description):
@@ -16,6 +17,7 @@ def dict_factory(cursor, row):
 def filter_by(cur, table, condition):
     # script = "SELECT * FROM shl WHERE " + field + " " + operator + " \"" + value + "\""
     script = "SELECT * FROM " + table + " WHERE " + condition + " order by id"
+    print(script)
     return cur.execute(script).fetchall()
 
 

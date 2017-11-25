@@ -36,9 +36,12 @@ from app import views, models
 #db.drop_all()
 db.create_all()
 
+source_table_names = []
+
 xlsfiles = [
     "shanghanlun_wang.xlsx",
-    "yxzzcxl.xlsx"
+    "yxzzcxl.xlsx",
+    "shennongbencaojing.xlsx"
     ]
 db_name = "./app.db"
 # table_name = "shl"
@@ -51,6 +54,7 @@ for xlsfile in xlsfiles:
         sheets = file.sheet_names
         for sheet in sheets:
             #print(sheet)
+            source_table_names.append(sheet)
             cur.executescript('drop table if exists ' + sheet)
             data = pd.read_excel(file, sheet, header=0, index_col=None, na_values=['NA'])
             pd_sql.to_sql(data, sheet, conn)

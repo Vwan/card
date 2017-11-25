@@ -4,7 +4,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 
 from app.utils import search_card_from_src_db
 from .forms import NameForm, RegistrationForm, CardForm
-from app import app, db, loginmanager, markdown, pagedown, moment
+from app import app, db, loginmanager, markdown, pagedown, moment#, source_table_names
 from .models import User, Role, Card
 from sqlalchemy.sql.expression import func
 from flaskext.markdown import Markdown
@@ -14,15 +14,12 @@ from markdown import markdown
 # 回调函数，如果能找到用户，这个函数必须返回用户对象，否则返回None
 from . import loginmanager
 
-tables = [
-    "医学衷中参西录",
+source_table_names = [
+    '神农本草经',
     '伤寒论',
     '金贵要略',
-    # '中兽医'
+    #'中兽医'
 ]
-
-
-# app.config['tables']
 
 @loginmanager.user_loader
 def load_user(id):
@@ -120,7 +117,7 @@ def search():
     data = request.json['search-str']
     condition = "details LIKE '%" + data + "%'"
     print("condition is: " + condition)
-    for table_name in tables:
+    for table_name in source_table_names:# app.source_table_names:
         search_card_from_src_db(table_name, condition, data)
     cards = Card.query.filter(Card.title.contains(data)).all()
     return redirect(url_for('show_all'))
